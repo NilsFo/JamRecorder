@@ -1,7 +1,7 @@
 import json
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import cv2
 import numpy as np
@@ -12,14 +12,10 @@ import share
 
 def main():
     share.write('Welcome.')
+    loop()
 
-    loop(screenshots_per_minute=20)
 
-
-def loop(screenshots_per_minute):
-    interval = 60.0 / screenshots_per_minute  # seconds between triggers
-    next_trigger_time = time.perf_counter()
-
+def loop():
     # =====================
     # Reading config
     # =====================
@@ -35,6 +31,7 @@ def loop(screenshots_per_minute):
     config_webcam_resolution_width = int(data["webcam_resolution_width"])
     config_webcam_resolution_height = int(data["webcam_resolution_height"])
     config_output_dir = str(data["output_dir"])
+    screenshots_per_minute = int(str(data["screenshots_per_minute"]))
 
     cap = None
     if config_take_webcam:
@@ -48,12 +45,37 @@ def loop(screenshots_per_minute):
         height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
         share.write(f"Webcam Resolution: {int(width)}x{int(height)}")
 
-    # =====================
-    # MAIN LOOP
-    # =====================
+    if screenshots_per_minute <= 0:
+        raise ValueError("rate_per_minute must be greater than 0")
+
+    if 60 % screenshots_per_minute != 0:
+        raise ValueError(
+            "Screenshots per minute must be a divisor of 60 "
+            "(e.g. 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60)"
+        )
+
+    interval_seconds = 60 // screenshots_per_minute
 
     while True:
-        # --- TRIGGER ACTION ---
+        now = datetime.now()
+
+        # Start of the current minute
+        minute_start = now.replace(second=0, microsecond=0)
+
+        # Seconds elapsed since minute start
+        elapsed_seconds = now.second + now.microsecond / 1_000_000
+
+        # Find next aligned trigger slot
+        next_slot = int(elapsed_seconds // interval_seconds) + 1
+        next_trigger = minute_start + timedelta(seconds=next_slot * interval_seconds)
+
+        # If we've crossed into the next minute, that's fine;
+        # datetime handles it automatically.
+        sleep_seconds = (next_trigger - now).total_seconds()
+
+        if sleep_seconds > 0:
+            time.sleep(sleep_seconds)
+
         if config_take_screenshot:
             try:
                 take_screenshot(out_file_dir=config_output_dir, monitor_index=config_monitor_index)
@@ -65,17 +87,6 @@ def loop(screenshots_per_minute):
                 record_webcam(out_file_dir=config_output_dir, cap=cap)
             except Exception as e:
                 share.write('Error while taking screenshot.')
-        # Replace this with your actual logic
-
-        # --- SCHEDULING ---
-        next_trigger_time += interval
-        sleep_time = next_trigger_time - time.perf_counter()
-
-        if sleep_time > 0:
-            time.sleep(sleep_time)
-        else:
-            # We're behind schedule; skip sleep and resync
-            next_trigger_time = time.perf_counter()
 
 
 def take_screenshot(out_file_dir: str, monitor_index=0):

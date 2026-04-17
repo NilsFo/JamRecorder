@@ -5,5 +5,6 @@
   "webcam_index": 0,
   "webcam_resolution_width": 1920,
   "webcam_resolution_height": 1080,
-  "output_dir": ""
+  "output_dir": "out",
+  "screenshots_per_minute": 10
 }
