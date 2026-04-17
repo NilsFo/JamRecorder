@@ -1,0 +1,9 @@
+{
+  "take_screenshot": "True",
+  "monitor_index": 1,
+  "take_webcam": "True",
+  "webcam_index": 0,
+  "webcam_resolution_width": 1920,
+  "webcam_resolution_height": 1080,
+  "output_dir": ""
+}
