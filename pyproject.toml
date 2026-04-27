@@ -1,0 +1,13 @@
+[project]
+name = "jamrecorder"
+version = "0.1.0"
+description = "Record your screen to make timelapses"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mss>=10.2.0",
+    "numpy>=2",
+    "opencv-python>=4",
+    "pillow>=12.2.0",
+    "python-ffmpeg>=2.0.12",
+]

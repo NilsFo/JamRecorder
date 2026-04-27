@@ -11,7 +11,7 @@ import share
 
 
 def main():
-    share.write('Welcome.')
+    share.write("Welcome.")
     loop()
 
 
@@ -19,8 +19,15 @@ def loop():
     # =====================
     # Reading config
     # =====================
-    share.write('Reading config.')
-    f = open('config.json')
+    share.write("Reading config.")
+    try:
+        f = open("config.json")
+    except FileNotFoundError as e:
+        import shutil
+
+        shutil.copy("example_config.json", "config.json")
+
+        f = open("config.json")
     data = json.loads(f.read())
     f.close()
 
@@ -35,7 +42,7 @@ def loop():
 
     cap = None
     if config_take_webcam:
-        share.write('Setting up Webcam.')
+        share.write("Setting up Webcam.")
         cap = cv2.VideoCapture(config_webcam_index)
 
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, config_webcam_resolution_width)
@@ -78,15 +85,17 @@ def loop():
 
         if config_take_screenshot:
             try:
-                take_screenshot(out_file_dir=config_output_dir, monitor_index=config_monitor_index)
+                take_screenshot(
+                    out_file_dir=config_output_dir, monitor_index=config_monitor_index
+                )
             except Exception as e:
-                share.write('Error while taking screenshot.')
+                share.write(f"Error while taking screenshot. {e}")
 
         if config_take_webcam:
             try:
                 record_webcam(out_file_dir=config_output_dir, cap=cap)
             except Exception as e:
-                share.write('Error while taking screenshot.')
+                share.write(f"Error while taking webcam photo. {e}")
 
 
 def take_screenshot(out_file_dir: str, monitor_index=0):
@@ -99,11 +108,11 @@ def take_screenshot(out_file_dir: str, monitor_index=0):
     path = os.path.abspath(out_file_dir)
     os.makedirs(path, exist_ok=True)
 
-    timestamp = datetime.now().strftime("%d_%m_%y_%H_%M_%S")
-    file_name = f'{path}{os.sep}screenshot_{timestamp}.png'
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
+    file_name = f"{path}{os.sep}screenshot_{timestamp}.png"
 
-    cv2.imwrite(file_name, img)
-    share.write(f'File saved: {file_name}')
+    cv2.imwrite(file_name, img[..., :3])
+    share.write(f"File saved: {file_name}")
 
 
 def record_webcam(out_file_dir: str, cap):
@@ -115,10 +124,10 @@ def record_webcam(out_file_dir: str, cap):
     path = os.path.abspath(out_file_dir)
     os.makedirs(path, exist_ok=True)
     timestamp = datetime.now().strftime("%d_%m_%y_%H_%M_%S")
-    file_name = f'{path}{os.sep}webcam_{timestamp}.png'
+    file_name = f"{path}{os.sep}webcam_{timestamp}.png"
     cv2.imwrite(file_name, frame)
-    share.write(f'File saved: {file_name}')
+    share.write(f"File saved: {file_name}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
