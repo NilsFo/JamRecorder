@@ -1,10 +1,10 @@
 config.json
 
 
-# 2024 specific
-/2024/Day14/output/
-/2024/Day23/*.html
-/2024/Day23/lib
+# input and output folders
+/frameout/
+/out/
+/recording/
 
 # PROJECT SPECIFIC GITIGNORE
 
