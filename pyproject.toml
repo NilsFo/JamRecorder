@@ -1,9 +1,24 @@
+# Welcome to JamRecorder!
+
+# General
 [project]
 name = "jamrecorder"
 version = "0.1.0"
-description = "Record your screen to make timelapses"
+description = "Record your screen to make timelapses."
 readme = "README.md"
 requires-python = ">=3.10"
+license-files = ["LICEN[CS]E.*"]
+keywords = ["timelapses", "recording", "webcam", "screenshots", "game jams"]
+classifiers = [
+    # How mature is this project?
+    "Development Status :: 4 - Beta",
+    # Indicate who your project is intended for
+    "Intended Audience :: Developers",
+    # Specify the Python versions you support here.
+    "Programming Language :: Python :: 3.10"
+]
+
+# External libraries
 dependencies = [
     "ffmpeg-python>=0.2.0",
     "mss>=10.2.0",
@@ -11,4 +26,24 @@ dependencies = [
     "opencv-python>=4",
     "pillow>=12.2.0",
     "python-ffmpeg>=2.0.12",
+    "tqdm>=4.67.3",
 ]
+
+# Who is responsible?
+authors = [
+    { name = "Nils" },
+    { name = "Patrick" },
+]
+maintainers = [
+    { name = "Nils" },
+    { name = "Patrick" },
+]
+
+# Links
+[project.urls]
+Homepage = "https://github.com/NilsFo/JamRecorder"
+Documentation = "https://github.com/NilsFo/JamRecorder/wiki"
+Repository = "https://github.com/NilsFo/JamRecorder.git"
+Issues = "https://github.com/NilsFo/JamRecorder/issues"
+Downloads = "https://github.com/NilsFo/JamRecorder/archive/refs/heads/master.zip"
+Releasenotes = "https://github.com/NilsFo/JamRecorder/releases"

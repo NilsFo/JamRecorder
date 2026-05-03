@@ -2,10 +2,10 @@ import itertools
 import math
 import pathlib
 
-import ffmpeg
-import numpy as np
 import PIL.Image
 import PIL.ImageOps
+import ffmpeg
+import numpy as np
 from typing_extensions import OrderedDict
 
 
@@ -28,7 +28,7 @@ def timelapse_images(folders, video_size=(1920, 1080), output_folder="./frameout
 
 
 def timelapse_ffmpeg(
-    folders, video_size=(1920, 1080), output_file="./timelapse.mp4", framerate=30
+        folders, video_size=(1920, 1080), output_file="./timelapse.mp4", framerate=30
 ):
     outpath = pathlib.Path(output_file)
     outpath.parent.mkdir(exist_ok=True)
