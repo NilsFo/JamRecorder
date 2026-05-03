@@ -54,7 +54,7 @@ Please report any contradictions in this `README.md`.
 
 ## Recording
 Before you can create a timelapse you should create some recordings.
-Run `$ python record_screen.py` to begin recording.
+Run `$ python record.py` to begin recording.
 
 An infinite loop is started and recordings are placed in a specified directory at the moment they are created.
 Quit the loop by terminating the program.

@@ -1,7 +1,7 @@
 {
-  "take_screenshot": 1,
+  "record_screenshot": 1,
   "monitor_index": 1,
-  "take_webcam": 0,
+  "record_webcam": 0,
   "webcam_index": 0,
   "webcam_resolution_width": 1920,
   "webcam_resolution_height": 1080,

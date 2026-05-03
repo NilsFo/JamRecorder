@@ -88,9 +88,9 @@ def loop():
 
     f.close()
 
-    config_take_screenshot = bool(int(data["take_screenshot"]))
+    config_record_screenshot = bool(int(data["record_screenshot"]))
     config_monitor_index = int(data["monitor_index"])
-    config_take_webcam = bool(int(data["take_webcam"]))
+    config_record_webcam = bool(int(data["record_webcam"]))
     config_webcam_index = int(data["webcam_index"])
     config_webcam_resolution_width = int(data["webcam_resolution_width"])
     config_webcam_resolution_height = int(data["webcam_resolution_height"])
@@ -101,7 +101,7 @@ def loop():
     # Setting up Webcam
     # ================================================================================================
     cap = None
-    if config_take_webcam:
+    if config_record_webcam:
         utils.write("Setting up Webcam.")
         cap = cv2.VideoCapture(config_webcam_index)
 
@@ -159,9 +159,9 @@ def loop():
             time.sleep(sleep_seconds)
 
         # =============================================================================================
-        # Taking Screenshot
+        # Recording Screenshots
         # =============================================================================================
-        if config_take_screenshot:
+        if config_record_screenshot:
             try:
                 take_screenshot(
                     out_file_dir=config_output_dir,
@@ -171,9 +171,9 @@ def loop():
                 utils.write(f"Error while taking screenshot. {e}")
 
         # =============================================================================================
-        # Reading Webcam
+        # Reading from the Webcam
         # =============================================================================================
-        if config_take_webcam:
+        if config_record_webcam:
             try:
                 record_webcam(
                     out_file_dir=config_output_dir,
