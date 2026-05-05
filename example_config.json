@@ -1,10 +1,26 @@
 {
-  "record_screenshot": 1,
-  "monitor_index": 1,
-  "record_webcam": 0,
-  "webcam_index": 0,
-  "webcam_resolution_width": 1920,
-  "webcam_resolution_height": 1080,
-  "output_dir": "out",
-  "recordings_per_minute": 10
+  "recoridng": {
+    "record_screenshot": 1,
+    "monitor_index": 1,
+    "record_webcam": 0,
+    "webcam_index": 0,
+    "webcam_resolution_width": 1920,
+    "webcam_resolution_height": 1080,
+    "output_dir": "recordings/myrecording",
+    "recordings_per_minute": 10
+  },
+  "timelapse": {
+    "output_format": "ffmpeg",
+    "output": "timelapse.mp4",
+    "output_size": [1920, 1080],
+    "folders": ["recordings/myrecording"],
+    "captions": [""],
+    "draw_timestamp": true,
+    "timestamp_position": [16, 16],
+    "timestamp_format": "%d %B, %Y\n%H:%M",
+    "font_size": 24,
+    "font_name": "arial.ttf",
+    "font_color": [255, 255, 255],
+    "framerate": 30
+  }
 }

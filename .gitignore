@@ -3,8 +3,10 @@ config.json
 
 # input and output folders
 /frameout/
+/timelapse/
 /out/
 /recording/
+*.mp4
 
 # PROJECT SPECIFIC GITIGNORE
 

@@ -81,9 +81,11 @@ def loop():
 
     # Reading file as JSON data
     try:
-        data = json.loads(file_contents)
+        data = json.loads(file_contents)["recordings"]
     except json.JSONDecodeError as e:
-        utils.write(f"Failed to read config. Failed to interpret JSON structure. Is it in correct JSON syntax?")
+        utils.write(
+            f"Failed to read config. Failed to interpret JSON structure. Is it in correct JSON syntax?"
+        )
         return
 
     f.close()

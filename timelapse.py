@@ -1,37 +1,60 @@
+import datetime
 import itertools
+import json
 import math
+import os
 import pathlib
 
-import PIL.Image
-import PIL.ImageOps
 import ffmpeg
 import numpy as np
+import PIL.Image
+import PIL.ImageDraw
+import PIL.ImageFont
+import PIL.ImageOps
 from typing_extensions import OrderedDict
 
+import utils
 
-def timelapse_images(folders, video_size=(1920, 1080), output_folder="./frameout/"):
-    outpath = pathlib.Path(output_folder)
+default_fonts = {"windows": "arial.ttf", "posix": "NotoSans-Regular.ttf"}
+
+
+def timelapse_images(
+    folders,
+    video_size=(1920, 1080),
+    output="./frameout/",
+    **kwargs,
+):
+    outpath = pathlib.Path(output)
     outpath.mkdir(exist_ok=True)
 
-    # n_frames = max(
-    #     [len(list(pathlib.Path(folder).glob("*.png"))) for folder in folders]
-    # )
-    fi = 0
+    output_format = kwargs.get("output_format", "png")
 
-    for framed in timelapse_iterator(folders, video_size):
+    # n_frames = max([len(list(pathlib.Path(folder).glob("*.png"))) for folder in folders])
+
+    for framed in timelapse_iterator(folders, video_size, **kwargs):
         frame = framed["frame"]
         name = framed["name"]
+        fi = framed["frame_index"]
         fills = "".join(framed["fills"])
-        print(f"{fi:>6} | {name}\t{fills}")
-        frame.save(outpath / (name + ".png"))
-        fi += 1
+        utils.write(f"{fi:>6} | {name}\t{fills}")
+        frame.save(outpath / (name + "." + output_format))
+    utils.write(
+        f"Finished!\nOutput written to {str(outpath)}\n"
+        "You can convert the images to video using the following command:\n"
+        f"> ffmpeg -framerate 30 -pattern_type glob -i '{output}/*.png' -c:v libx264 -pix_fmt yuv420p timelapse.mp4"
+    )
 
 
 def timelapse_ffmpeg(
-        folders, video_size=(1920, 1080), output_file="./timelapse.mp4", framerate=30
+    folders,
+    video_size=(1920, 1080),
+    output="./timelapse.mp4",
+    **kwargs,
 ):
-    outpath = pathlib.Path(output_file)
+    outpath = pathlib.Path(output)
     outpath.parent.mkdir(exist_ok=True)
+
+    framerate = kwargs.get("framerate", 30)
 
     ffproc = (
         ffmpeg.input(
@@ -39,19 +62,20 @@ def timelapse_ffmpeg(
             format="rawvideo",
             pix_fmt="rgb24",
             s=f"{video_size[0]}x{video_size[1]}",
+            r=framerate,
         )
         .output(str(outpath), pix_fmt="yuv420p")
         .overwrite_output()
         .run_async(pipe_stdin=True)
     )
 
-    for frame in timelapse_iterator(folders, video_size):
+    for frame in timelapse_iterator(folders, video_size, **kwargs):
         ffproc.stdin.write(np.array(frame["frame"]).astype(np.uint8).tobytes())
 
     ffproc.stdin.close()
 
 
-def timelapse_iterator(folders, video_size=(1920, 1080)):
+def timelapse_iterator(folders, video_size=(1920, 1080), **kwargs):
     n_folders = len(folders)
 
     grid_size = math.ceil(math.sqrt(n_folders))
@@ -61,26 +85,72 @@ def timelapse_iterator(folders, video_size=(1920, 1080)):
     cw = width // grid_size  # cell size
     ch = height // grid_size
 
+    font = PIL.ImageFont.truetype(
+        kwargs.get("font", default_fonts[os.name]),
+        kwargs.get("font_size", 20),
+    )
+
+    timestamp = kwargs.get("timestamp", True)
+    timestamp_pos = kwargs.get("timestamp_pos", (16, 16))
+    timestamp_format = kwargs.get("timestamp_format", "%d %B, %Y\n%H:%M:%S")
+    timestamp_color = kwargs.get("font_color", (255, 255, 255))
+
+    captions = kwargs.get("captions", [""] * n_folders)
+    skip = kwargs.get("skip", 0)
+    fi = 0
     for name, files in synced_folder_iterator(folders):
-        # print(f"Frame {name}")
+        if fi < skip:
+            fi += 1
+            continue
         frame = PIL.Image.new("RGB", video_size)
         x = -1
         y = 0
         i = -1
         st = ["░"] * n_folders
-        for f in files:
+
+        draw = PIL.ImageDraw.Draw(frame)
+
+        for f, caption in zip(files, captions):
             x += 1
             i += 1
             if x >= grid_size:
                 x = 0
                 y += 1
-            if f is None:
-                continue
-            img = PIL.Image.open(f)
-            img = PIL.ImageOps.cover(img, (cw, ch))
-            PIL.Image.Image.paste(frame, img, (x * cw, y * ch))
-            st[i] = "█"
-        frame = {"name": name, "frame": frame, "fills": st}
+            if f is not None:
+                img = PIL.Image.open(f)
+                img = PIL.ImageOps.cover(img, (cw, ch))
+                PIL.Image.Image.paste(frame, img, (x * cw, y * ch))
+                st[i] = "█"
+            if caption != "":
+                caption_pos = ((x + 1) * cw - 16, (y + 1) * ch - 16)
+                draw.text(
+                    caption_pos,
+                    caption,
+                    timestamp_color,
+                    anchor="rb",
+                    font=font,
+                    stroke_width=1,
+                    stroke_fill=(0, 0, 0),
+                    **kwargs,
+                )
+
+        if timestamp:
+            # Draw timestamp
+            timestamp_ = datetime.datetime.strptime(name, "%d_%m_%y_%H_%M_%S")
+            timestamp_str = timestamp_.strftime(timestamp_format)
+            # draw.text((x, y),"Sample Text",(r,g,b))
+            draw.text(
+                timestamp_pos,
+                timestamp_str,
+                timestamp_color,
+                font=font,
+                stroke_width=1,
+                stroke_fill=(0, 0, 0),
+                **kwargs,
+            )
+
+        frame = {"name": name, "frame": frame, "fills": st, "frame_index": fi}
+        fi += 1
         yield frame
 
 
@@ -126,7 +196,37 @@ def synced_folder_iterator(folders):
         yield smallest, tuple(it)
 
 
+def timelapse_from_config(config: dict):
+    if config["output_format"] in ["ffmpeg", "mp4", "avi", "mkv", "mpg"]:
+        timelapse_ffmpeg(**config)
+    else:
+        timelapse_images(**config)
+
+
+def main():
+    # Opening config file
+    try:
+        f = open("config.json")
+        file_contents = str(f.read())
+    except IOError | FileNotFoundError as e:
+        utils.write(
+            f"Failed to read config. File system / permission errors?\n{str(e)}"
+        )
+        return
+
+    # Reading file as JSON data
+    try:
+        data = json.loads(file_contents)["timelapse"]
+    except json.JSONDecodeError as e:
+        utils.write(
+            f"Failed to read config. Failed to interpret JSON structure. Is it in correct JSON syntax?\n{str(e)}"
+        )
+        return
+
+    f.close()
+
+    timelapse_from_config(data)
+
+
 if __name__ == "__main__":
-    timelapse_images(
-        ["recording/Webcam", "recording/Adi", "recording/ph", "recording/Nils"]
-    )
+    main()
