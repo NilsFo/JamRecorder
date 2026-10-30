@@ -93,7 +93,7 @@ def timelapse_iterator(folders, video_size=(1920, 1080), **kwargs):
     timestamp = kwargs.get("timestamp", True)
     timestamp_pos = kwargs.get("timestamp_pos", (16, 16))
     timestamp_format = kwargs.get("timestamp_format", "%d %B, %Y\n%H:%M:%S")
-    timestamp_color = kwargs.get("font_color", (255, 255, 255))
+    timestamp_color = tuple(kwargs.get("font_color", (255, 255, 255)))
 
     captions = kwargs.get("captions", [""] * n_folders)
     skip = kwargs.get("skip", 0)
@@ -204,9 +204,17 @@ def timelapse_from_config(config: dict):
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(
+            prog="JamTimelapser",
+            description="Creates synchronized timelapses from png based recordings",
+    )
+    parser.add_argument('config_file', default="./config.json", type=pathlib.Path)
+    args = parser.parse_args()
+
     # Opening config file
     try:
-        f = open("config.json")
+        f = open(args.config_file)
         file_contents = str(f.read())
     except IOError | FileNotFoundError as e:
         utils.write(

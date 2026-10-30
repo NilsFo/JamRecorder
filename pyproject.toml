@@ -6,7 +6,7 @@ name = "jamrecorder"
 version = "0.1.0"
 description = "Record your screen to make timelapses."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.14"
 license-files = ["LICEN[CS]E.*"]
 keywords = ["timelapses", "recording", "webcam", "screenshots", "game jams"]
 classifiers = [
@@ -27,6 +27,9 @@ dependencies = [
     "pillow>=12.2.0",
     "python-ffmpeg>=2.0.12",
     "tqdm>=4.67.3",
+    "pyperclip;platform_system=='Linux'",
+    "PyGObject;platform_system=='Linux'",
+    "pywayland;platform_system=='Linux'",
 ]
 
 # Who is responsible?

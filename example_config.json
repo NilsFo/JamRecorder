@@ -1,14 +1,12 @@
 {
-  "recoridng": {
-    "record_screenshot": 1,
-    "monitor_index": 1,
-    "record_webcam": 0,
-    "webcam_index": 0,
-    "webcam_resolution_width": 1920,
-    "webcam_resolution_height": 1080,
-    "output_dir": "recordings/myrecording",
-    "recordings_per_minute": 10
-  },
+  "record_screenshot": 1,
+  "monitor_index": 1,
+  "record_webcam": 0,
+  "webcam_index": 0,
+  "webcam_resolution_width": 1920,
+  "webcam_resolution_height": 1080,
+  "output_dir": "recordings/myrecording",
+  "recordings_per_minute": 10,
   "timelapse": {
     "output_format": "ffmpeg",
     "output": "timelapse.mp4",

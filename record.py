@@ -22,7 +22,11 @@ from datetime import datetime, timedelta
 
 import cv2
 import numpy as np
-from mss import mss
+from mss import MSS as mss
+if os.name == "posix" and os.getenv("XDG_SESSION_TYPE"):
+    # enable wayland workaround
+    from wayland_mss_shim import MSSModuleShim
+    mss = MSSModuleShim().mss
 
 import utils
 
@@ -81,7 +85,7 @@ def loop():
 
     # Reading file as JSON data
     try:
-        data = json.loads(file_contents)["recordings"]
+        data = json.loads(file_contents)
     except json.JSONDecodeError as e:
         utils.write(
             f"Failed to read config. Failed to interpret JSON structure. Is it in correct JSON syntax?"
@@ -137,55 +141,59 @@ def loop():
     # ================================================================================================
     # Main Loop
     # ================================================================================================
-    while True:
-        # =============================================================================================
-        # Waiting for next timestamp
-        # =============================================================================================
-        now = datetime.now()
 
-        # Start of the current minute
-        minute_start = now.replace(second=0, microsecond=0)
+    with mss() as sct:
+        while True:
+            # =============================================================================================
+            # Waiting for next timestamp
+            # =============================================================================================
+            now = datetime.now()
 
-        # Seconds elapsed since minute start
-        elapsed_seconds = now.second + now.microsecond / 1_000_000
+            # Start of the current minute
+            minute_start = now.replace(second=0, microsecond=0)
 
-        # Find next aligned trigger slot
-        next_slot = int(elapsed_seconds // interval_seconds) + 1
-        next_trigger = minute_start + timedelta(seconds=next_slot * interval_seconds)
+            # Seconds elapsed since minute start
+            elapsed_seconds = now.second + now.microsecond / 1_000_000
 
-        # If we've crossed into the next minute, that's fine;
-        # datetime handles it automatically.
-        sleep_seconds = (next_trigger - now).total_seconds()
+            # Find next aligned trigger slot
+            next_slot = int(elapsed_seconds // interval_seconds) + 1
+            next_trigger = minute_start + timedelta(seconds=next_slot * interval_seconds)
 
-        if sleep_seconds > 0:
-            time.sleep(sleep_seconds)
+            # If we've crossed into the next minute, that's fine;
+            # datetime handles it automatically.
+            sleep_seconds = (next_trigger - now).total_seconds()
 
-        # =============================================================================================
-        # Recording Screenshots
-        # =============================================================================================
-        if config_record_screenshot:
-            try:
-                take_screenshot(
-                    out_file_dir=config_output_dir,
-                    monitor_index=config_monitor_index
-                )
-            except Exception as e:
-                utils.write(f"Error while taking screenshot. {e}")
+            if sleep_seconds > 0:
+                time.sleep(sleep_seconds)
 
-        # =============================================================================================
-        # Reading from the Webcam
-        # =============================================================================================
-        if config_record_webcam:
-            try:
-                record_webcam(
-                    out_file_dir=config_output_dir,
-                    cap=cap
-                )
-            except Exception as e:
-                utils.write(f"Error while taking webcam photo. {e}")
+            # =============================================================================================
+            # Recording Screenshots
+            # =============================================================================================
+            if config_record_screenshot:
+                try:
+                    take_screenshot(
+                        sct,
+                        out_file_dir=config_output_dir,
+                        monitor_index=config_monitor_index
+                    )
+                except Exception as e:
+                    utils.write(f"Error while taking screenshot. {e}")
+
+            # =============================================================================================
+            # Reading from the Webcam
+            # =============================================================================================
+            if config_record_webcam:
+                try:
+                    record_webcam(
+                        out_file_dir=config_output_dir,
+                        cap=cap
+                    )
+                except Exception as e:
+                    utils.write(f"Error while taking webcam photo. {e}")
 
 
 def take_screenshot(
+        sct: mss.MSS,
         out_file_dir: str,
         monitor_index=0
 ):
@@ -204,10 +212,9 @@ def take_screenshot(
 
     img = None
     # using mss to take a screenshot of a specified monitor index
-    with mss() as sct:
-        monitor_2 = sct.monitors[monitor_index]
-        shot = sct.grab(monitor_2)
-        img = np.array(shot)
+    monitor_2 = sct.monitors[monitor_index]
+    shot = sct.grab(monitor_2)
+    img = np.array(shot)
 
     # get the full file name and path to save the file to
     file_name = _out_file_name(
@@ -289,7 +296,7 @@ def _out_file_name(
     os.makedirs(path, exist_ok=True)
 
     # generates the file name for the image
-    timestamp = datetime.now().strftime("%d_%m_%y_%H_%M_%S")
+    timestamp = datetime.now().strftime("%y_%m_%d_%H_%M_%S")
     file_name = f"{path}{os.sep}{file_name_prefix}_{timestamp}{file_name_suffix}.{file_extension}"
     return file_name
 
