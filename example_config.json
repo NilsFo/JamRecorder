@@ -8,17 +8,22 @@
   "output_dir": "recordings/myrecording",
   "recordings_per_minute": 10,
   "timelapse": {
-    "output_format": "ffmpeg",
-    "output": "timelapse.mp4",
-    "output_size": [1920, 1080],
-    "folders": ["recordings/myrecording"],
-    "captions": [""],
-    "draw_timestamp": true,
-    "timestamp_position": [16, 16],
-    "timestamp_format": "%d %B, %Y\n%H:%M",
-    "font_size": 24,
-    "font_name": "arial.ttf",
-    "font_color": [255, 255, 255],
-    "framerate": 30
+    "output_format": "ffmpeg",    // "ffmpeg" for direct-to-video, or "png" for individual frames
+    "output": "timelapse.mp4",    // output file (for video) or output folder (for individual frames)
+    "output_size": [1920, 1080],  // Resolution of the output images/video
+    "folders": [                  // The folders for the recordings, corresponding to a view in the grid
+        "recordings/myrecording",
+        "recordings/bob",
+        "recordings/oscar",
+        "recordings/webcam"
+    ],
+    "captions": ["Alice", "Bob", "Oscar", "Webcam"],  // Caption in the bottom right of each view
+    "draw_timestamp": true,           // Renders the timestamp into the output
+    "timestamp_position": [16, 16],   // Position of the timestamp (top left)
+    "timestamp_format": "%d %B, %Y\n%H:%M",  // Format of the timestamp
+    "font_size": 24,                  // Font size for time stamp and captions
+    "font_name": "arial.ttf",         // Font for time stamp and captions
+    "font_color": [255, 255, 255],    // Font color for time stamp and captions
+    "framerate": 30                   // Framerate
   }
 }

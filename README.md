@@ -98,7 +98,42 @@ This is usually corrected / rounded to the nearest supported resolution, determi
 
 ## Creating a timelapse
 
-TBA.
+Once you have some recordings from one or multiple devices, you can create a simultaneous timelapse using `timelapse.py`.
+Copy the recording folders from other devices into your recordings folder, so that each view has its own folder.
+The timelapse script will order the views into a grid (2x2, 3x3, etc.) and synchronize all of them.
+Configure the settings of the timelapse using your `config.json` like this:
+
+```json
+  "timelapse": {
+    "output_format": "ffmpeg",    // "ffmpeg" for direct-to-video, or "png" for individual frames
+    "output": "timelapse.mp4",    // output file (for video) or output folder (for individual frames)
+    "output_size": [1920, 1080],  // Resolution of the output images/video
+    "folders": [                  // The folders for the recordings, corresponding to a view in the grid
+        "recordings/myrecording", 
+        "recordings/bob", 
+        "recordings/oscar", 
+        "recordings/webcam"
+    ],
+    "captions": ["Alice", "Bob", "Oscar", "Webcam"],  // Caption in the bottom right of each view
+    "draw_timestamp": true,           // Renders the timestamp into the output
+    "timestamp_position": [16, 16],   // Position of the timestamp (top left)
+    "timestamp_format": "%d %B, %Y\n%H:%M",  // Format of the timestamp
+    "font_size": 24,                  // Font size for time stamp and captions
+    "font_name": "arial.ttf",         // Font for time stamp and captions
+    "font_color": [255, 255, 255],    // Font color for time stamp and captions
+    "framerate": 30                   // Framerate
+  }
+```
+
+Then, run `python timelapse.py config.json` or `uv run timelapse.py config.json` to start the timelapsing.
+If you are using the ffmpeg option, make sure [ffmpeg](https://ffmpeg.org/) is installed and `ffmpeg` is in the path.
+If you are using the png output format, you can then create a video from the pngs using ffmpeg like this:
+
+```sh
+ffmpeg -framerate 30 -pattern_type glob -i '{output}/*.png' -c:v libx264 -pix_fmt yuv420p timelapse.mp4
+```
+
+
 
 # License
 
